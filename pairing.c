@@ -152,6 +152,7 @@ int main()
 		// verify witness
 		// first calculate the evaluation at I
 		mclBnFr EvalI, EvalItem;
+		mclBnFr_clear(&EvalI);
 		for (int j = 0; j < 2048; j++) {
 			mclBnFr_mul(&EvalItem, IExp + j, data + j);
 			mclBnFr_add(&EvalI, &EvalI, &EvalItem);
@@ -159,11 +160,11 @@ int main()
 		mclBnGT e1, e2_1, e2_2, e2;
 		mclBn_pairing(&e1, &C, G2PK + 0);
 		mclBnG2 GI, GAdivGI;
-		mclBnG2_mul(&GI, G2PK + 0, &I);
-		mclBnG2_sub(&GAdivGI, G2PK + 1, &GI);
-		mclBn_pairing(&e2_1, W + i, &GAdivGI);
+		mclBnG2_mul(&GI, G2PK + 0, &I);			// GI = G2^I
+		mclBnG2_sub(&GAdivGI, G2PK + 1, &GI);		// GAdivGI = G2^A / G2^I
+		mclBn_pairing(&e2_1, W + i, &GAdivGI);		// e2_1 = e(W_i, G2^A / G2^I)
 		mclBn_pairing(&e2_2, G1PK + 0, G2PK + 0);
-		mclBnGT_pow(&e2_2, &e2_2, &EvalI);
+		mclBnGT_pow(&e2_2, &e2_2, &EvalI);		// e2_2 = e(G1, G2)^Phi(I)
 		mclBnGT_mul(&e2, &e2_1, &e2_2);
 		int eq = mclBnGT_isEqual(&e1, &e2);
 		if (eq) {
