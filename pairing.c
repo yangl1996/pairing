@@ -78,6 +78,8 @@ int main()
 	mclBnG1* W;
 	W = (mclBnG1*)malloc(4096 * sizeof(mclBnG1));
 	for (int i = 0; i < 4096; i++) {
+		printf("Witness for i=%d...", i);
+		fflush(stdout);
 		mclBnFr I;
 		mclBnFr_setInt(&I, i);
 		mclBnFr* IExp;	// IExp[m] = I^m
@@ -91,7 +93,7 @@ int main()
 		mclBnFr* PDiv;	// coefficients
 		PDiv = (mclBnFr*)malloc(2048 * sizeof(mclBnFr));
 		for (int k = 0; k < 2048; k++) {
-			mclBnFr_clear(PDiv + i);
+			mclBnFr_clear(PDiv + k);
 			mclBnFr PTemp;
 			// the coefficient for x^k is Phi_t i^t-k-1 + Phi_t-1 i^t-k-2 + ... + Phi_k+1 i^0
 			// t = 2047 here (degree of the polynomial)
@@ -100,6 +102,38 @@ int main()
 				mclBnFr_add(PDiv + k, PDiv + k, &PTemp);	// accumulate to PDiv[k]
 			}
 		}
+
+		// verify the calculation is good: evaluate (Phi(x)-Phi(i))/(x-i) at random point ep
+		mclBnFr ep, er, ei, ex, epExp;
+		mclBnFr_clear(&er);	// er: Phi(ep)-Phi(i)/ep-i
+		mclBnFr_clear(&ei);	// ei: Phi(i)
+		mclBnFr_clear(&ex);	// ex: Phi(ep)
+		mclBnFr_setByCSPRNG(&ep);
+		mclBnFr_setInt(&epExp, 1);
+		for (int m = 0; m < 2048; m++) {
+			mclBnFr temp;
+			mclBnFr_mul(&temp, PDiv + m, &epExp);
+			mclBnFr_add(&er, &er, &temp);
+			
+			mclBnFr_mul(&temp, data + m, &epExp);
+			mclBnFr_add(&ex, &ex, &temp);
+
+			mclBnFr_mul(&temp, data + m, IExp + m);
+			mclBnFr_add(&ei, &ei, &temp);
+
+			mclBnFr_mul(&epExp, &epExp, &ep);
+		}
+		mclBnFr epsubi, exsubei, er2;
+		mclBnFr_sub(&epsubi, &ep, &I);	// epsubi = ep - i
+		mclBnFr_sub(&exsubei, &ex, &ei);// exsubei = Phi(ep) - Phi(i)
+		mclBnFr_div(&er2, &exsubei, &epsubi);
+		int eval_eq = mclBnFr_isEqual(&er, &er2);
+		if (eval_eq) {
+			printf("P(x)-P(i)/x-i correct...");
+		} else {
+			printf("P(x)-P(i)/x-i INCORRECT...");
+		}
+		fflush(stdout);
 
 		// now we can calculate the witness
 		mclBnG1_clear(W + i);
@@ -132,10 +166,6 @@ int main()
 			printf("... verification passed\n");
 		} else {
 			printf("!!! verification failed\n");
-			mclBnGT_getStr(buf, sizeof(buf), &e1, 16);
-			printf("E1=%s\n", buf);
-			mclBnGT_getStr(buf, sizeof(buf), &e2, 16);
-			printf("E2=%s\n", buf);
 		}
 	}
 
