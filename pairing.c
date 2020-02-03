@@ -148,7 +148,6 @@ int main()
 			mclBnG1_mul(&WItem, G1PK + k, PDiv + k);
 			mclBnG1_add(W + i, W + i, &WItem);
 		}
-		printf("witness generated...");
 		fflush(stdout);
 		/*
 		mclBnG1_getStr(buf, sizeof(buf), W + i, 16);
@@ -163,6 +162,8 @@ int main()
 			mclBnFr_mul(&EvalItem, IExp + j, data + j);
 			mclBnFr_add(&EvalI, &EvalI, &EvalItem);
 		}
+		clock_t start_witness, end_witness;
+		start_witness = clock();
 		mclBnGT e1, e2_1, e2_2, e2;
 		mclBn_pairing(&e1, &C, G2PK + 0);
 		mclBnG2 GI, GAdivGI;
@@ -173,8 +174,11 @@ int main()
 		mclBnGT_pow(&e2_2, &e2_2, &EvalI);		// e2_2 = e(G1, G2)^Phi(I)
 		mclBnGT_mul(&e2, &e2_1, &e2_2);
 		int eq = mclBnGT_isEqual(&e1, &e2);
+		end_witness = clock();
+		double time_witness;
+		time_witness = ((double) (end_witness - start_witness)) / CLOCKS_PER_SEC;
 		if (eq) {
-			printf("verification passed\n");
+			printf("verification passed in %.2lfms\n", time_witness * 1000);
 		} else {
 			printf("verification FAILED\n");
 		}
