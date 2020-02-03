@@ -142,8 +142,12 @@ int main()
 			mclBnG1_mul(&WItem, G1PK + k, PDiv + k);
 			mclBnG1_add(W + i, W + i, &WItem);
 		}
+		printf("witness generated...");
+		fflush(stdout);
+		/*
 		mclBnG1_getStr(buf, sizeof(buf), W + i, 16);
 		printf("Witness W[%d]=%s\n", i, buf);
+		*/
 
 		// verify witness
 		// first calculate the evaluation at I
@@ -163,9 +167,9 @@ int main()
 		mclBnGT_mul(&e2, &e2_1, &e2_2);
 		int eq = mclBnGT_isEqual(&e1, &e2);
 		if (eq) {
-			printf("... verification passed\n");
+			printf("verification passed\n");
 		} else {
-			printf("!!! verification failed\n");
+			printf("verification FAILED\n");
 		}
 	}
 
