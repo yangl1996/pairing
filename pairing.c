@@ -67,12 +67,13 @@ int main()
 	// generate commitment
 	mclBnG1 C;
 	mclBnG1_clear(&C);
-	mclBnG1 CItem;
+	mclBnG1* CItems;
+	CItems = (mclBnG1*)malloc(sizeof(mclBnG1) * 2048);
 	clock_t start_commitment, end_commitment;
 	start_commitment = clock();
+	mclBnG1_mulVec(CItems, G1PK, data, 2048);
 	for (int i = 0; i < 2048; i++) {
-		mclBnG1_mul(&CItem, G1PK + i, data + i);
-		mclBnG1_add(&C, &C, &CItem);
+		mclBnG1_add(&C, &C, CItems + i);
 	}
 	end_commitment = clock();
 	double time_used;
