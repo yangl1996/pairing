@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <mcl/bn_c384_256.h>
+#include <time.h>
 
 int main()
 {
@@ -67,12 +68,17 @@ int main()
 	mclBnG1 C;
 	mclBnG1_clear(&C);
 	mclBnG1 CItem;
+	clock_t start_commitment, end_commitment;
+	start_commitment = clock();
 	for (int i = 0; i < 2048; i++) {
 		mclBnG1_mul(&CItem, G1PK + i, data + i);
 		mclBnG1_add(&C, &C, &CItem);
 	}
+	end_commitment = clock();
+	double time_used;
+	time_used = ((double) (end_commitment - start_commitment)) / CLOCKS_PER_SEC;
 	mclBnG1_getStr(buf, sizeof(buf), &C, 16);
-	printf("Commitment C=%s\n", buf);
+	printf("Commitment generated, time=%.2lfms, throughput=%.2lfMbps", time_used * 1000, 64 * 1024 * 8 / time_used);
 
 	// generate witnesses for each evaluation point (suppose there are 4096)
 	mclBnG1* W;
