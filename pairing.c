@@ -82,13 +82,9 @@ int main()
 	mclBnG1 C;
 	mclBnG1_clear(&C);
 	mclBnG1* CItems;
-	CItems = (mclBnG1*)malloc(sizeof(mclBnG1) * 2048);
 	clock_t start_commitment, end_commitment;
 	start_commitment = clock();
-	mclBnG1_mulVec(CItems, G1PK, data, 2048);
-	for (int i = 0; i < 2048; i++) {
-		mclBnG1_add(&C, &C, CItems + i);
-	}
+	mclBnG1_mulVec(&C, G1PK, data, 2048);	// C = G1PK[] . data[]
 	end_commitment = clock();
 	double time_used;
 	time_used = ((double) (end_commitment - start_commitment)) / CLOCKS_PER_SEC;
@@ -157,17 +153,7 @@ int main()
 		fflush(stdout);
 
 		// now we can calculate the witness
-		mclBnG1_clear(W + i);
-		mclBnG1 WItem;
-		for (int k = 0; k < 2048; k++) {
-			mclBnG1_mul(&WItem, G1PK + k, PDiv + k);
-			mclBnG1_add(W + i, W + i, &WItem);
-		}
-		fflush(stdout);
-		/*
-		mclBnG1_getStr(buf, sizeof(buf), W + i, 16);
-		printf("Witness W[%d]=%s\n", i, buf);
-		*/
+		mclBnG1_mulVec(W + i, G1PK, PDiv, 2048);	// W[i] = G1PK[] . PDiv[]
 
 		// verify witness
 		// first calculate the evaluation at I
@@ -177,19 +163,21 @@ int main()
 			mclBnFr_mul(&EvalItem, IExp + j, data + j);
 			mclBnFr_add(&EvalI, &EvalI, &EvalItem);
 		}
-		clock_t start_witness, end_witness;
+		clock_t start_witness, mid_witness, end_witness;
 		mclBnGT e1, e2_1, e2_2, e2;
 		start_witness = clock();
 		mclBn_pairing(&e1, &C, G2PK + 0);
+		mid_witness = clock();
 		mclBn_pairing(&e2_1, W + i, G2AdivG2I + i);	// e2_1 = e(W_i, G2^A / G2^I)
 		mclBnGT_pow(&e2_2, &eG1G2, &EvalI);		// e2_2 = e(G1, G2)^Phi(I)
 		mclBnGT_mul(&e2, &e2_1, &e2_2);
 		int eq = mclBnGT_isEqual(&e1, &e2);
 		end_witness = clock();
-		double time_witness;
+		double time_witness, time_unique;
 		time_witness = ((double) (end_witness - start_witness)) / CLOCKS_PER_SEC;
+		time_unique = ((double) (end_witness - mid_witness)) / CLOCKS_PER_SEC;
 		if (eq) {
-			printf("verification passed in %.2lfms\n", time_witness * 1000);
+			printf("verification passed in %.2lfms (%.2lfms nonshared)\n", time_witness * 1000, time_unique * 1000);
 		} else {
 			printf("verification FAILED\n");
 		}
