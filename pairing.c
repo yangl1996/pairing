@@ -71,7 +71,10 @@ int main()
 	}
 	mclBnGT eG1G2;
 	mclBn_pairing(&eG1G2, G1PK + 0, G2PK + 0);
-	printf("G2^A / G2^I and e(G1, G2) precomputed\n");
+	uint64_t* Pbuf;
+	Pbuf = (uint64_t*)malloc(mclBn_getUint64NumToPrecompute() * sizeof(uint64_t));
+	mclBn_precomputeG2(Pbuf, &G2);
+	printf("millerloop(P, G2), millerloop(P, G2^A / G2^I), and e(G1, G2) precomputed\n");
 
 	// generate the polynomial to be encoded
 	// the coefficients of the polynomial are the message chunks
@@ -170,7 +173,8 @@ int main()
 		clock_t start_witness, mid_witness, end_witness;
 		mclBnGT e1, e2_1, e2_2, e2;
 		start_witness = clock();
-		mclBn_pairing(&e1, &C, G2PK + 0);
+		mclBn_precomputedMillerLoop(&e1, &C, Pbuf);
+		mclBn_finalExp(&e1, &e1);			// e1 = e(C, G2)
 		mid_witness = clock();
 		mclBn_precomputedMillerLoop(&e2_1, W + i, Qbuf[i]);
 		mclBn_finalExp(&e2_1, &e2_1);			// e2_1 = e(W_i, G2^A / G2^I)
