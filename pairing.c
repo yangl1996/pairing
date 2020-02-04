@@ -163,9 +163,9 @@ int main()
 		mclBnFr_div(&er2, &exsubei, &epsubi);
 		int eval_eq = mclBnFr_isEqual(&er, &er2);
 		if (eval_eq) {
-			printf("P(x)-P(i)/x-i correct...");
+			printf("P(x)-P(i)/x-i ✔...");
 		} else {
-			printf("P(x)-P(i)/x-i INCORRECT...");
+			printf("P(x)-P(i)/x-i ❌...");
 		}
 		fflush(stdout);
 
@@ -196,9 +196,9 @@ int main()
 		time_witness = ((double) (end_witness - start_witness)) / CLOCKS_PER_SEC;
 		time_unique = ((double) (end_witness - mid_witness)) / CLOCKS_PER_SEC;
 		if (eq) {
-			printf("verification passed in %.2lfms (%.2lfms nonshared)\n", time_witness * 1000, time_unique * 1000);
+			printf("verification ✔ in %.2lfms (%.2lfms nonshared)\n", time_witness * 1000, time_unique * 1000);
 		} else {
-			printf("verification FAILED\n");
+			printf("verification ❌\n");
 		}
 	}
 
