@@ -55,15 +55,19 @@ int main()
 	}
 	printf("Public keys generated\n");
 
-	// precompute G2^A / G2^I for I=0..4096
+	// precompute stuff
 	mclBnG2* G2AdivG2I;
 	G2AdivG2I = (mclBnG2*)malloc(sizeof(mclBnG2) * 4096);
+	uint64_t** Qbuf;
+	Qbuf = (uint64_t**)malloc(4096 * sizeof(uint64_t*));
 	for (int i = 0; i < 4096; i++) {
 		mclBnFr I;
 		mclBnFr_setInt(&I, i);
 		mclBnG2 mulres;
 		mclBnG2_mul(&mulres, &G2, &I);
 		mclBnG2_sub(G2AdivG2I + i, G2PK + 1, &mulres);	// GAdivGI = G2^A / G2^I
+		Qbuf[i] = (uint64_t*)malloc(mclBn_getUint64NumToPrecompute() * sizeof(uint64_t));
+		mclBn_precomputeG2(Qbuf[i], G2AdivG2I + i);
 	}
 	mclBnGT eG1G2;
 	mclBn_pairing(&eG1G2, G1PK + 0, G2PK + 0);
@@ -168,7 +172,8 @@ int main()
 		start_witness = clock();
 		mclBn_pairing(&e1, &C, G2PK + 0);
 		mid_witness = clock();
-		mclBn_pairing(&e2_1, W + i, G2AdivG2I + i);	// e2_1 = e(W_i, G2^A / G2^I)
+		mclBn_precomputedMillerLoop(&e2_1, W + i, Qbuf[i]);
+		mclBn_finalExp(&e2_1, &e2_1);			// e2_1 = e(W_i, G2^A / G2^I)
 		mclBnGT_pow(&e2_2, &eG1G2, &EvalI);		// e2_2 = e(G1, G2)^Phi(I)
 		mclBnGT_mul(&e2, &e2_1, &e2_2);
 		int eq = mclBnGT_isEqual(&e1, &e2);
