@@ -55,6 +55,20 @@ int main()
 	}
 	printf("Public keys generated\n");
 
+	// precompute G2^A / G2^I for I=0..4096
+	mclBnG2* G2AdivG2I;
+	G2AdivG2I = (mclBnG2*)malloc(sizeof(mclBnG2) * 4096);
+	for (int i = 0; i < 4096; i++) {
+		mclBnFr I;
+		mclBnFr_setInt(&I, i);
+		mclBnG2 mulres;
+		mclBnG2_mul(&mulres, &G2, &I);
+		mclBnG2_sub(G2AdivG2I + i, G2PK + 1, &mulres);	// GAdivGI = G2^A / G2^I
+	}
+	mclBnGT eG1G2;
+	mclBn_pairing(&eG1G2, G1PK + 0, G2PK + 0);
+	printf("G2^A / G2^I and e(G1, G2) precomputed\n");
+
 	// generate the polynomial to be encoded
 	// the coefficients of the polynomial are the message chunks
 	mclBnFr* data;
@@ -164,15 +178,11 @@ int main()
 			mclBnFr_add(&EvalI, &EvalI, &EvalItem);
 		}
 		clock_t start_witness, end_witness;
-		start_witness = clock();
 		mclBnGT e1, e2_1, e2_2, e2;
+		start_witness = clock();
 		mclBn_pairing(&e1, &C, G2PK + 0);
-		mclBnG2 GI, GAdivGI;
-		mclBnG2_mul(&GI, G2PK + 0, &I);			// GI = G2^I
-		mclBnG2_sub(&GAdivGI, G2PK + 1, &GI);		// GAdivGI = G2^A / G2^I
-		mclBn_pairing(&e2_1, W + i, &GAdivGI);		// e2_1 = e(W_i, G2^A / G2^I)
-		mclBn_pairing(&e2_2, G1PK + 0, G2PK + 0);
-		mclBnGT_pow(&e2_2, &e2_2, &EvalI);		// e2_2 = e(G1, G2)^Phi(I)
+		mclBn_pairing(&e2_1, W + i, G2AdivG2I + i);	// e2_1 = e(W_i, G2^A / G2^I)
+		mclBnGT_pow(&e2_2, &eG1G2, &EvalI);		// e2_2 = e(G1, G2)^Phi(I)
 		mclBnGT_mul(&e2, &e2_1, &e2_2);
 		int eq = mclBnGT_isEqual(&e1, &e2);
 		end_witness = clock();
