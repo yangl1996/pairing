@@ -1,12 +1,22 @@
 #include <stdio.h>
 #include <string.h>
+#ifdef BN254
+#include <mcl/bn_c256.h>
+#endif
+#ifdef BLS12_381
 #include <mcl/bn_c384_256.h>
+#endif
 #include <time.h>
 
 int main()
 {
 	char buf[1600];
+#ifdef BN254
+	int ret = mclBn_init(MCL_BN254, MCLBN_COMPILED_TIME_VAR);
+#endif
+#ifdef BLS12_381
 	int ret = mclBn_init(MCL_BLS12_381, MCLBN_COMPILED_TIME_VAR);
+#endif
 	if (ret != 0) {
 		printf("error initialize crypto library, ret=%d\n", ret);
 		return 1;
