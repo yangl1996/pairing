@@ -145,7 +145,7 @@ int main()
 			mclBnFr_add(&EvalI, &EvalI, &EvalItem);
 		}
 		clock_t start_witness, mid_witness, end_witness;
-		mclBnGT e1, e2_1, e2_2, e2;
+		mclBnGT e1;
 		start_witness = clock();
 		PCverifyEval_computeCG2(&e1, &C, &pc);
 		mid_witness = clock();
@@ -160,7 +160,6 @@ int main()
 			printf("verification ❌\n");
 		}
 	}
-
 	return 0;
 }
 

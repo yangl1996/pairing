@@ -58,7 +58,7 @@ inline int PCverifyEval_precomputed(int evalPoint, const mclBnFr* evalRes,
 inline int PCverifyEval(int evalPoint, const mclBnFr* evalRes,
 		        const mclBnG1* c, const mclBnG1* w,
                         const PCprecompute* pc) {
-	mclBnGT CG2, e;
+	mclBnGT CG2;
 	PCverifyEval_computeCG2(&CG2, c, pc);
 	return PCverifyEval_precomputed(evalPoint, evalRes, w, &CG2, pc);
 }
