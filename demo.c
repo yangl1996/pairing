@@ -47,7 +47,7 @@ int main()
 	end_commitment = clock();
 	double time_used;
 	time_used = ((double) (end_commitment - start_commitment)) / CLOCKS_PER_SEC;
-	printf("Commitment generated, time=%.2lfms, throughput=%.2lfMbps\n", time_used * 1000, 64 / 1024.0 * 8 / time_used);
+	printf("Commitment generated, time=%.2lfms, throughput=%.2lfMbps\n", time_used * 1000, 62 / 1024.0 * 8 / time_used);
 
 	// generate witnesses for each evaluation point (suppose there are 4096)
 	mclBnG1* W;

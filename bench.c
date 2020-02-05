@@ -79,11 +79,11 @@ int main()
 		}
 		printf("Commit=%.2lf ms (%.2lf Mbps); Eval=%.2lf ms (%.2lf Kbps); Check=%.2lf ms (%.2lf Mbps)\n",
                         time_commitment * 1000.0,
-			64.0 * 8 / 1024.0 / time_commitment,
+			62.0 * 8 / 1024.0 / time_commitment,
 			time_witness * 1000.0,
-			64.0 * 8 / 4096.0 / time_witness,
+			62.0 * 8 / 4096.0 / time_witness,
 			time_verify * 1000.0,
-			64.0 * 8 / 1024.0 / time_verify);
+			62.0 * 8 / 1024.0 / time_verify);
 	}
 	return 0;
 }
