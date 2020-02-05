@@ -26,3 +26,5 @@ int PCsrs_init(PCsrs* srs, const char* G1sk, const char* G2sk, const char* Ask,
                int srs_len);
 
 int PCprecompute_init(PCprecompute* pc, const PCsrs* srs, int eval_len);
+
+int PCcommit(mclBnG1* c, const PCsrs* srs, const mclBnFr* poly, int len);

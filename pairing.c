@@ -63,11 +63,9 @@ int main()
 
 	// generate commitment
 	mclBnG1 C;
-	mclBnG1_clear(&C);
-	mclBnG1* CItems;
 	clock_t start_commitment, end_commitment;
 	start_commitment = clock();
-	mclBnG1_mulVec(&C, G1PK, data, 2048);	// C = G1PK[] . data[]
+	PCcommit(&C, &srs, data, 2048);
 	end_commitment = clock();
 	double time_used;
 	time_used = ((double) (end_commitment - start_commitment)) / CLOCKS_PER_SEC;
