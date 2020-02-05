@@ -1,16 +1,9 @@
 #include <stdio.h>
-#ifdef BN254
-#include <mcl/bn_c256.h>
-#endif
-#ifdef BLS12_381
-#include <mcl/bn_c384_256.h>
-#endif
 #include <time.h>
 #include "polycommit.h"
 
 int main()
 {
-	char buf[1600];
 #ifdef BN254
 	int ret = mclBn_init(MCL_BN254, MCLBN_COMPILED_TIME_VAR);
 #endif
@@ -25,31 +18,11 @@ int main()
 	// init the SRS from hashes
 	PCsrs srs;
 	PCsrs_init(&srs, "g1sk", "g2sk", "alphask", 2048);
-	mclBnG1 G1;
-	mclBnG2 G2;
-	G1 = srs.G1;
-	G2 = srs.G2;
-
-	mclBnG1_getStr(buf, sizeof(buf), &G1, 16);
-	printf("G1=%s\n", buf);
-	mclBnG2_getStr(buf, sizeof(buf), &G2, 16);
-	printf("G2=%s\n", buf);
-
-	mclBnG1* G1PK;
-	mclBnG2* G2PK;
-	G1PK = srs.G1PK;
-	G2PK = srs.G2PK;
 	printf("Public keys generated\n");
 
 	// precompute stuff
 	PCprecompute pc;
 	PCprecompute_init(&pc, &srs, 4096);
-	uint64_t** Qbuf;
-	Qbuf = pc.mG2AG2I;
-	mclBnGT eG1G2;
-	eG1G2 = pc.eG1G2;
-	uint64_t* Pbuf;
-	Pbuf = pc.mG2;
 	printf("millerloop(P, G2), millerloop(P, G2^A / G2^I), and e(G1, G2) precomputed\n");
 
 	// generate the polynomial to be encoded
@@ -69,7 +42,6 @@ int main()
 	end_commitment = clock();
 	double time_used;
 	time_used = ((double) (end_commitment - start_commitment)) / CLOCKS_PER_SEC;
-	mclBnG1_getStr(buf, sizeof(buf), &C, 16);
 	printf("Commitment generated, time=%.2lfms, throughput=%.2lfMbps\n", time_used * 1000, 64 / 1024.0 * 8 / time_used);
 
 	// generate witnesses for each evaluation point (suppose there are 4096)
