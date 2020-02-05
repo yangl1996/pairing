@@ -25,3 +25,21 @@ int PCsrs_init(PCsrs* srs, const char* G1sk, const char* G2sk, const char* Ask,
 	}
 	return 0;
 }
+
+int PCprecompute_init(PCprecompute* pc, const PCsrs* srs, int eval_len) {
+	mclBn_pairing(&pc->eG1G2, &srs->G1, &srs->G2);
+	pc->mG2AG2I = (uint64_t**)malloc(eval_len * sizeof(uint64_t*));
+	pc->mG2 = (uint64_t*)malloc(mclBn_getUint64NumToPrecompute() * sizeof(uint64_t));
+	mclBn_precomputeG2(pc->mG2, &srs->G2);
+	mclBnG2 mulres;
+	mclBnG2 G2AdivG2I;
+	mclBnFr I;
+	for (int i = 0; i < eval_len; i++) {
+		mclBnFr_setInt(&I, i);
+		mclBnG2_mul(&mulres, &srs->G2, &I);	// G2^I
+		mclBnG2_sub(&G2AdivG2I, srs->G2PK + 1, &mulres);	// G2^A/G2^I
+		pc->mG2AG2I[i] = (uint64_t*)malloc(mclBn_getUint64NumToPrecompute() * sizeof(uint64_t));
+		mclBn_precomputeG2(pc->mG2AG2I[i], &G2AdivG2I);
+	}
+	return 0;
+}

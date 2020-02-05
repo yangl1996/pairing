@@ -42,24 +42,14 @@ int main()
 	printf("Public keys generated\n");
 
 	// precompute stuff
-	mclBnG2* G2AdivG2I;
-	G2AdivG2I = (mclBnG2*)malloc(sizeof(mclBnG2) * 4096);
+	PCprecompute pc;
+	PCprecompute_init(&pc, &srs, 4096);
 	uint64_t** Qbuf;
-	Qbuf = (uint64_t**)malloc(4096 * sizeof(uint64_t*));
-	for (int i = 0; i < 4096; i++) {
-		mclBnFr I;
-		mclBnFr_setInt(&I, i);
-		mclBnG2 mulres;
-		mclBnG2_mul(&mulres, &G2, &I);
-		mclBnG2_sub(G2AdivG2I + i, G2PK + 1, &mulres);	// GAdivGI = G2^A / G2^I
-		Qbuf[i] = (uint64_t*)malloc(mclBn_getUint64NumToPrecompute() * sizeof(uint64_t));
-		mclBn_precomputeG2(Qbuf[i], G2AdivG2I + i);
-	}
+	Qbuf = pc.mG2AG2I;
 	mclBnGT eG1G2;
-	mclBn_pairing(&eG1G2, G1PK + 0, G2PK + 0);
+	eG1G2 = pc.eG1G2;
 	uint64_t* Pbuf;
-	Pbuf = (uint64_t*)malloc(mclBn_getUint64NumToPrecompute() * sizeof(uint64_t));
-	mclBn_precomputeG2(Pbuf, &G2);
+	Pbuf = pc.mG2;
 	printf("millerloop(P, G2), millerloop(P, G2^A / G2^I), and e(G1, G2) precomputed\n");
 
 	// generate the polynomial to be encoded
