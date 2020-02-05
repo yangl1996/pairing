@@ -1,3 +1,7 @@
 include
 lib
-pairing
+demo_*
+bench_*
+*.a
+*.o
+*.so

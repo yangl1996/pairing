@@ -1,4 +1,9 @@
-#include "polycommit.h"
+#ifdef BLS
+#include "polycommit_bls.h"
+#endif
+#ifdef BN
+#include "polycommit_bn.h"
+#endif
 
 int PCsrs_init(PCsrs* srs, const char* G1sk, const char* G2sk, const char* Ask,
                int srs_len) {

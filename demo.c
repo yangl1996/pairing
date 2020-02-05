@@ -1,13 +1,18 @@
 #include <stdio.h>
 #include <time.h>
-#include "polycommit.h"
+#ifdef BN
+#include "polycommit_bn.h"
+#endif
+#ifdef BLS
+#include "polycommit_bls.h"
+#endif
 
 int main()
 {
-#ifdef BN254
+#ifdef BN
 	int ret = mclBn_init(MCL_BN254, MCLBN_COMPILED_TIME_VAR);
 #endif
-#ifdef BLS12_381
+#ifdef BLS
 	int ret = mclBn_init(MCL_BLS12_381, MCLBN_COMPILED_TIME_VAR);
 #endif
 	if (ret != 0) {

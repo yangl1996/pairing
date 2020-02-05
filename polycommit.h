@@ -1,11 +1,5 @@
 #include <stdio.h>
 #include <string.h>
-#ifdef BN254
-#include <mcl/bn_c256.h>
-#endif
-#ifdef BLS12_381
-#include <mcl/bn_c384_256.h>
-#endif
 
 typedef struct PCsrs {
 	mclBnG1 G1;
