@@ -1,0 +1,28 @@
+Polynomial Commitment based on Kate et al. 2010
+===============================================
+
+Install Dependencies
+--------------------
+
+The library depends on GMP. Install it by `apt install libgmp-dev`.
+
+To install the mcl library (for elliptical curve computation), run the following:
+
+git submodule init
+git submodule update
+cd mcl && make
+
+Your dynamic library loader needs to be able to find the mcl shared libraries.
+Run `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/mcl/lib`.
+
+Library
+-------
+
+To build the library, run `make static`. Include "polycommit_bn.h" for BN254 curve
+(100 bit security) and "polycommit_bls.h" for BLS12-381 (128 bit security). Link
+against "libpolycommitbn.a" and "libpolycommitbls.a" respectively when building.
+
+Demo and Benchmark
+------------------
+
+Run `make binary`.
