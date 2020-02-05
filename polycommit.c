@@ -45,3 +45,24 @@ int PCprecompute_init(PCprecompute* pc, const PCsrs* srs, int eval_len) {
 	return 0;
 }
 
+int PCwitness(mclBnG1* w, mclBnFr* evalRes, int evalPoint, const mclBnFr* poly, int poly_len, const PCsrs* srs) {
+	// first, evaluate the polynomial
+	// i = evalPoint
+	mclBnFr I;
+	mclBnFr_setInt(&I, evalPoint);
+	mclBn_FrEvaluatePolynomial(evalRes, poly, poly_len, &I);
+	// then, calculate (Poly(x)-Poly(i))/(x-i)
+	mclBnFr* newPoly;
+	newPoly = (mclBnFr*)malloc(poly_len * sizeof(mclBnFr));
+	for (int k = 0; k < poly_len; k++) {
+		// coefficient for x^k is Poly_t i^t-k-1 + Poly_t-1 i^t-k-2 + ... + Poly_k+1 i^0
+		// where t is degree of the polynomial
+		mclBnFr_clear(newPoly + k);
+		mclBn_FrEvaluatePolynomial(newPoly + k, poly + k + 1, poly_len - 1 - k, &I);
+	}
+	// finally, calculate the witness
+	mclBnG1_mulVec(w, srs->G1PK, newPoly, poly_len);
+
+	free(newPoly);
+	return 0;
+}

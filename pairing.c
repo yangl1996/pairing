@@ -78,72 +78,11 @@ int main()
 	for (int i = 0; i < 4096; i++) {
 		printf("Witness for i=%d...", i);
 		fflush(stdout);
-		mclBnFr I;
-		mclBnFr_setInt(&I, i);
-		mclBnFr* IExp;	// IExp[m] = I^m
-		IExp = (mclBnFr*)malloc(2048 * sizeof(mclBnFr));
-		mclBnFr_setInt(IExp + 0, 1);
-		for (int m = 1; m < 2048; m++) {
-			mclBnFr_mul(IExp + m, IExp + m - 1, &I);
-		}
-
-		// first, we need to calculate (Phi(x)-Phi(i))/(x-i) for the given i
-		mclBnFr* PDiv;	// coefficients
-		PDiv = (mclBnFr*)malloc(2048 * sizeof(mclBnFr));
-		for (int k = 0; k < 2048; k++) {
-			mclBnFr_clear(PDiv + k);
-			mclBnFr PTemp;
-			// the coefficient for x^k is Phi_t i^t-k-1 + Phi_t-1 i^t-k-2 + ... + Phi_k+1 i^0
-			// t = 2047 here (degree of the polynomial)
-			for (int j = 0; j < 2047 - k; j++) {
-				mclBnFr_mul(&PTemp, data + (k+1+j), IExp + j);	// calculate Phi_(k+1+j) I^j
-				mclBnFr_add(PDiv + k, PDiv + k, &PTemp);	// accumulate to PDiv[k]
-			}
-		}
-
-		// verify the calculation is good: evaluate (Phi(x)-Phi(i))/(x-i) at random point ep
-		mclBnFr ep, er, ei, ex, epExp;
-		mclBnFr_clear(&er);	// er: Phi(ep)-Phi(i)/ep-i
-		mclBnFr_clear(&ei);	// ei: Phi(i)
-		mclBnFr_clear(&ex);	// ex: Phi(ep)
-		mclBnFr_setByCSPRNG(&ep);
-		mclBnFr_setInt(&epExp, 1);
-		for (int m = 0; m < 2048; m++) {
-			mclBnFr temp;
-			mclBnFr_mul(&temp, PDiv + m, &epExp);
-			mclBnFr_add(&er, &er, &temp);
-			
-			mclBnFr_mul(&temp, data + m, &epExp);
-			mclBnFr_add(&ex, &ex, &temp);
-
-			mclBnFr_mul(&temp, data + m, IExp + m);
-			mclBnFr_add(&ei, &ei, &temp);
-
-			mclBnFr_mul(&epExp, &epExp, &ep);
-		}
-		mclBnFr epsubi, exsubei, er2;
-		mclBnFr_sub(&epsubi, &ep, &I);	// epsubi = ep - i
-		mclBnFr_sub(&exsubei, &ex, &ei);// exsubei = Phi(ep) - Phi(i)
-		mclBnFr_div(&er2, &exsubei, &epsubi);
-		int eval_eq = mclBnFr_isEqual(&er, &er2);
-		if (eval_eq) {
-			printf("P(x)-P(i)/x-i ✔...");
-		} else {
-			printf("P(x)-P(i)/x-i ❌...");
-		}
-		fflush(stdout);
-
-		// now we can calculate the witness
-		mclBnG1_mulVec(W + i, G1PK, PDiv, 2048);	// W[i] = G1PK[] . PDiv[]
+		mclBnFr EvalI;
+		// generate the witness
+		PCwitness(W + i, &EvalI, i, data, 2048, &srs);
 
 		// verify witness
-		// first calculate the evaluation at I
-		mclBnFr EvalI, EvalItem;
-		mclBnFr_clear(&EvalI);
-		for (int j = 0; j < 2048; j++) {
-			mclBnFr_mul(&EvalItem, IExp + j, data + j);
-			mclBnFr_add(&EvalI, &EvalI, &EvalItem);
-		}
 		clock_t start_witness, mid_witness, end_witness;
 		mclBnGT e1;
 		start_witness = clock();

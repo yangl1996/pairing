@@ -33,6 +33,9 @@ inline int PCcommit(mclBnG1* c, const PCsrs* srs, const mclBnFr* poly, int len) 
 	return 0;
 }
 
+// poly is defined as the coefficients, from low degree to high degree
+int PCwitness(mclBnG1* w, mclBnFr* evalRes, int evalPoint, const mclBnFr* poly, int poly_len, const PCsrs* srs);
+
 inline int PCverifyEval_computeCG2(mclBnGT* CG2, const mclBnG1* c, const PCprecompute* pc) {
 	// CG2 = e(C, G2);
 	mclBn_precomputedMillerLoop(CG2, c, pc->mG2);
