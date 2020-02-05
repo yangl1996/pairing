@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <string.h>
 #ifdef BN254
 #include <mcl/bn_c256.h>
 #endif
@@ -7,6 +6,7 @@
 #include <mcl/bn_c384_256.h>
 #endif
 #include <time.h>
+#include "polycommit.h"
 
 int main()
 {
@@ -22,47 +22,23 @@ int main()
 		return 1;
 	}
 
-	// define generators of G1 and G2 and init them from random hashes
+	// init the SRS from hashes
+	PCsrs srs;
+	PCsrs_init(&srs, "g1sk", "g2sk", "alphask", 2048);
 	mclBnG1 G1;
 	mclBnG2 G2;
-	if (mclBnG1_hashAndMapTo(&G1, "g1blah", 6)) {
-		printf("error init generator of G1\n");
-		return 1;
-	}
-	if (mclBnG2_hashAndMapTo(&G2, "g2hey", 5)) {
-		printf("error init generator of G2\n");
-		return 1;
-	}
+	G1 = srs.G1;
+	G2 = srs.G2;
+
 	mclBnG1_getStr(buf, sizeof(buf), &G1, 16);
 	printf("G1=%s\n", buf);
 	mclBnG2_getStr(buf, sizeof(buf), &G2, 16);
 	printf("G2=%s\n", buf);
 
-	// define the secret key (alpha) and init from random hash
-	mclBnFr A;
-	if (mclBnFr_setHashOf(&A, "alphask", 7)) {
-		printf("error init secret key\n");
-		return 1;
-	}
-	mclBnFr_getStr(buf, sizeof(buf), &A, 16);
-	printf("Secret key Alpha=%s\n", buf);
-
-	// generate the public key from G1 and G2
-	// we need to handle polynomials of degree t=2048
 	mclBnG1* G1PK;
 	mclBnG2* G2PK;
-	G1PK = (mclBnG1*)malloc(2048 * sizeof(mclBnG1));
-	G2PK = (mclBnG2*)malloc(2048 * sizeof(mclBnG2));
-	mclBnG1 G1Mul;	// used to store G1^t, will be updated in the loop
-	mclBnG2 G2Mul;
-	G1Mul = G1;
-	G2Mul = G2;
-	for (int i = 0; i < 2048; i++) {
-		G1PK[i] = G1Mul;
-		G2PK[i] = G2Mul;
-		mclBnG1_mul(&G1Mul, &G1Mul, &A);
-		mclBnG2_mul(&G2Mul, &G2Mul, &A);
-	}
+	G1PK = srs.G1PK;
+	G2PK = srs.G2PK;
 	printf("Public keys generated\n");
 
 	// precompute stuff
