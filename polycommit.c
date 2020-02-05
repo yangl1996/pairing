@@ -45,8 +45,3 @@ int PCprecompute_init(PCprecompute* pc, const PCsrs* srs, int eval_len) {
 	return 0;
 }
 
-inline int PCcommit(mclBnG1* c, const PCsrs* srs, const mclBnFr* poly, int len) {
-	// C = Sum(G1PK[i]^poly[i])
-	mclBnG1_mulVec(c, srs->G1PK, poly, len);
-	return 0;
-}

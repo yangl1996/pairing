@@ -147,14 +147,9 @@ int main()
 		clock_t start_witness, mid_witness, end_witness;
 		mclBnGT e1, e2_1, e2_2, e2;
 		start_witness = clock();
-		mclBn_precomputedMillerLoop(&e1, &C, Pbuf);
-		mclBn_finalExp(&e1, &e1);			// e1 = e(C, G2)
+		PCverifyEval_computeCG2(&e1, &C, &pc);
 		mid_witness = clock();
-		mclBn_precomputedMillerLoop(&e2_1, W + i, Qbuf[i]);
-		mclBn_finalExp(&e2_1, &e2_1);			// e2_1 = e(W_i, G2^A / G2^I)
-		mclBnGT_pow(&e2_2, &eG1G2, &EvalI);		// e2_2 = e(G1, G2)^Phi(I)
-		mclBnGT_mul(&e2, &e2_1, &e2_2);
-		int eq = mclBnGT_isEqual(&e1, &e2);
+		int eq = PCverifyEval_precomputed(i, &EvalI, W + i, &e1, &pc);
 		end_witness = clock();
 		double time_witness, time_unique;
 		time_witness = ((double) (end_witness - start_witness)) / CLOCKS_PER_SEC;
