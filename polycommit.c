@@ -1,10 +1,13 @@
 #ifdef BLS
 #include "polycommit_bls.h"
+#define RSIZE 32
 #endif
 #ifdef BN
 #include "polycommit_bn.h"
+#define RSIZE 32
 #endif
 #include "string.h"
+#include "stdio.h"
 
 int PCsrs_init(PCsrs* srs, const char* G1sk, const char* G2sk, const char* Ask,
                int srs_len) {
@@ -48,6 +51,22 @@ int PCprecompute_init(PCprecompute* pc, const PCsrs* srs, int eval_len) {
 		pc->mG2AG2I[i] = (uint64_t*)malloc(mclBn_getUint64NumToPrecompute() * sizeof(uint64_t));
 		mclBn_precomputeG2(pc->mG2AG2I[i], &G2AdivG2I);
 	}
+	int srs_len = srs->srs_len;
+	pc->expG1 = (mclBnG1**)malloc(srs_len * sizeof(mclBnG1*));
+	int precomp_len = RSIZE * 8;
+	mclBnFr two;
+	mclBnFr_setInt(&two, 2);
+	for (int i = 0; i < srs_len; i++) {
+		pc->expG1[i] = (mclBnG1*)malloc(precomp_len * sizeof(mclBnG1));
+		mclBnFr exp;
+		mclBnFr_setInt(&exp, 0);
+		for (int j = 0; j < precomp_len; j++) {
+			// expG1[i][j] = G1PK[i]^(2^j)
+			mclBnG1_mul(pc->expG1[i] + j, srs->G1PK + i, &exp);
+			// double the exponential
+			mclBnFr_mul(&exp, &exp, &two);
+		}
+	}
 	return 0;
 }
 
@@ -73,6 +92,38 @@ int PCwitness(mclBnG1* w, mclBnFr* evalRes, int evalPoint, const mclBnFr* poly, 
 	return 0;
 }
 
+int PCcommit(mclBnG1* c, const PCsrs* srs, const PCprecompute* pc, const mclBnFr* poly, int len) {
+	// C = Prod(G1PK[i] ^ poly[i])
+	mclBnG1_clear(c);
+	char ef[RSIZE];
+	for (int i = 0; i < len; i++) {
+		const mclBnG1* precomp_table = pc->expG1[i];
+		int precomp_index = 0;
+		// first decompose the coefficient into bit string
+		mclBnFr_getLittleEndian(ef, RSIZE, poly + i);
+		// then add them up. notice that ef is little endian
+		for (int j = 0; j < RSIZE; j++) {
+			for (int k = 0; k < 8; k++) {
+				char mask = 1 << k;
+				// if the k-th bit of the j-byte is set
+				if (mask & ef[j]) {
+					mclBnG1_add(c, c, precomp_table + precomp_index);
+				}
+				precomp_index += 1;
+			}
+		}
+		if (i == 0) {
+			mclBnG1 normal;
+			mclBnG1_mul(&normal, srs->G1PK + i, poly + i);
+			if (!mclBnG1_isEqual(&normal, c)) {
+				printf("nonono\n");
+			}
+		}
+	}
+	return 0;
+}
+
+/*
 int PCbatchWitness(mclBnG1* w, mclBnFr* r, mclBnFr* evalRes, const int* evalPoint, int evalLen, const mclBnFr* poly,
                    int poly_len, const PCsrs* srs) {
 	// first, evaluate at all the requested points
@@ -104,6 +155,7 @@ int PCbatchWitness(mclBnG1* w, mclBnFr* r, mclBnFr* evalRes, const int* evalPoin
 	}
 
 	free(I);
-	free(res);
+	free(y);
 	return 0;
 }
+*/

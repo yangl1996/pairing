@@ -14,6 +14,7 @@ typedef struct PCprecompute {
 	mclBnGT eG1G2;	// e(G1, G2)
 	uint64_t* mG2;	// for millerloop(P, G2)
 	uint64_t** mG2AG2I;	// millerloop(P, G2^A/G2^I)
+	mclBnG1** expG1; // expG1[i][j] = G1^Ai^2^j
 } PCprecompute;
 
 int PCsrs_init(PCsrs* srs, const char* G1sk, const char* G2sk, const char* Ask,
@@ -21,11 +22,7 @@ int PCsrs_init(PCsrs* srs, const char* G1sk, const char* G2sk, const char* Ask,
 
 int PCprecompute_init(PCprecompute* pc, const PCsrs* srs, int eval_len);
 
-inline int PCcommit(mclBnG1* c, const PCsrs* srs, const mclBnFr* poly, int len) {
-	// C = Sum(G1PK[i]^poly[i])
-	mclBnG1_mulVec(c, srs->G1PK, poly, len);
-	return 0;
-}
+int PCcommit(mclBnG1* c, const PCsrs* srs, const PCprecompute* pc, const mclBnFr* poly, int len);
 
 // poly is defined as the coefficients, from low degree to high degree
 int PCwitness(mclBnG1* w, mclBnFr* evalRes, int evalPoint, const mclBnFr* poly, int poly_len, const PCsrs* srs);

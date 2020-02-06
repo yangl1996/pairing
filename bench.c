@@ -43,7 +43,7 @@ int main()
 		mclBnG1 C;
 		clock_t start_commitment, end_commitment;
 		start_commitment = clock();
-		PCcommit(&C, &srs, data, 2048);
+		PCcommit(&C, &srs, &pc, data, 2048);
 		end_commitment = clock();
 		double time_commitment;
 		time_commitment = ((double) (end_commitment - start_commitment)) / CLOCKS_PER_SEC;
