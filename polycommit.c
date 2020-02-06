@@ -4,6 +4,7 @@
 #ifdef BN
 #include "polycommit_bn.h"
 #endif
+#include "string.h"
 
 int PCsrs_init(PCsrs* srs, const char* G1sk, const char* G2sk, const char* Ask,
                int srs_len) {
@@ -69,5 +70,40 @@ int PCwitness(mclBnG1* w, mclBnFr* evalRes, int evalPoint, const mclBnFr* poly, 
 	mclBnG1_mulVec(w, srs->G1PK, newPoly, poly_len);
 
 	free(newPoly);
+	return 0;
+}
+
+int PCbatchWitness(mclBnG1* w, mclBnFr* r, mclBnFr* evalRes, const int* evalPoint, int evalLen, const mclBnFr* poly,
+                   int poly_len, const PCsrs* srs) {
+	// first, evaluate at all the requested points
+	mclBnFr* I;
+	I = (mclBnFr*)malloc(evalLen * sizeof(mclBnFr));
+	for (int i = 0; i < evalLen; i++) {
+		mclBnFr_setInt(I + i, evalPoint[i]);
+		mclBn_FrEvaluatePolynomial(evalRes + i, poly, poly_len, I + i);
+	}
+	// run interpolation to get r(x), b/c r(x)=poly(x) for all x in evalPoint
+	// r(x) has degree evalLen - 1. b/c if r(x) has degree evalLen, r(x) can be devided by Prod((x-poly(i))
+	// TODO: potential improvement http://fourier.eng.hmc.edu/e176/lectures/ch7/node3.html
+	//
+	// the library function only gives y(0), so we use the following method:
+	// first, get r_0=y(0). then r(x) = x (r_t x^t-1 + ... + r_1) + r_0
+	// so (r(x) - r_0) / x = r_t x^t-1 + ... + r_1, so the same interpolation for r_1, r_2...r_t
+	const mclBnFr* x = I;
+	mclBnFr* y;
+	y = (mclBnFr*)malloc(evalLen * sizeof(mclBnFr));
+	memcpy(y, evalRes, sizeof(mclBnFr) * evalLen);
+	for (int i = 0; i < evalLen; i++) {
+		int remaining_uk = evalLen - i;
+		mclBn_FrLagrangeInterpolation(r + i, x, y, remaining_uk);
+		for (int j = 0; j < evalLen; j++) {
+			// y[j] <- (y[j] - r_i) / x[j])
+			mclBnFr_sub(y + j, y + j, r + i);
+			mclBnFr_div(y + j, y + j, x + j);
+		}
+	}
+
+	free(I);
+	free(res);
 	return 0;
 }
