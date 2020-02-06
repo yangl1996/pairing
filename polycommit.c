@@ -58,13 +58,10 @@ int PCprecompute_init(PCprecompute* pc, const PCsrs* srs, int eval_len) {
 	mclBnFr_setInt(&two, 2);
 	for (int i = 0; i < srs_len; i++) {
 		pc->expG1[i] = (mclBnG1*)malloc(precomp_len * sizeof(mclBnG1));
-		mclBnFr exp;
-		mclBnFr_setInt(&exp, 0);
-		for (int j = 0; j < precomp_len; j++) {
+		pc->expG1[i][0] = srs->G1PK[i];
+		for (int j = 1; j < precomp_len; j++) {
 			// expG1[i][j] = G1PK[i]^(2^j)
-			mclBnG1_mul(pc->expG1[i] + j, srs->G1PK + i, &exp);
-			// double the exponential
-			mclBnFr_mul(&exp, &exp, &two);
+			mclBnG1_dbl(pc->expG1[i] + j, pc->expG1[i] + j - 1);
 		}
 	}
 	return 0;
