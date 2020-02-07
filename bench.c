@@ -7,7 +7,7 @@
 #include "polycommit_bls.h"
 #endif
 
-#define DEG 128
+#define DEG 2048
 
 int main()
 {

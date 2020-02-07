@@ -13,8 +13,9 @@ typedef struct PCprecompute {
 	int eval_len;	// support evaluation with x=0..=eval_len-1
 	mclBnGT eG1G2;	// e(G1, G2)
 	uint64_t* mG2;	// for millerloop(P, G2)
-	uint64_t** mG2AG2I;	// millerloop(P, G2^A/G2^I)
-	mclBnG1*** expG1; // expG1[i][j][k] = G1^Ai^(k * 2^(8*j))
+	uint64_t millerSize;
+	uint64_t* mG2AG2I;	// millerloop(P, G2^A/G2^I)
+	mclBnG1* expG1; // expG1[i][j][k] = G1^Ai^(k * 2^(8*j))
 } PCprecompute;
 
 int PCsrs_init(PCsrs* srs, const char* G1sk, const char* G2sk, const char* Ask,
@@ -39,7 +40,7 @@ inline int PCverifyEval_precomputed(int evalPoint, const mclBnFr* evalRes,
 	mclBnGT e1, e2;
 	// I = evalpoint
 	// e1 = e(w, G2^A/G2^I)
-	mclBn_precomputedMillerLoop(&e1, w, pc->mG2AG2I[evalPoint]);
+	mclBn_precomputedMillerLoop(&e1, w, pc->mG2AG2I + pc->millerSize * evalPoint);
 	mclBn_finalExp(&e1, &e1);
 	// e2 = e(G1, G2)^Poly(I)
 	mclBnGT_pow(&e2, &pc->eG1G2, evalRes);
