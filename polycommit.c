@@ -54,8 +54,6 @@ int PCprecompute_init(PCprecompute* pc, const PCsrs* srs, int eval_len) {
 	int srs_len = srs->srs_len;
 	pc->expG1 = (mclBnG1**)malloc(srs_len * sizeof(mclBnG1*));
 	int precomp_len = RSIZE * 8;
-	mclBnFr two;
-	mclBnFr_setInt(&two, 2);
 	for (int i = 0; i < srs_len; i++) {
 		pc->expG1[i] = (mclBnG1*)malloc(precomp_len * sizeof(mclBnG1));
 		pc->expG1[i][0] = srs->G1PK[i];
@@ -97,9 +95,9 @@ int PCcommit(mclBnG1* c, const PCsrs* srs, const PCprecompute* pc, const mclBnFr
 		const mclBnG1* precomp_table = pc->expG1[i];
 		int precomp_index = 0;
 		// first decompose the coefficient into bit string
-		mclBnFr_getLittleEndian(ef, RSIZE, poly + i);
+		int bufsize = mclBnFr_getLittleEndian(ef, RSIZE, poly + i);
 		// then add them up. notice that ef is little endian
-		for (int j = 0; j < RSIZE; j++) {
+		for (int j = 0; j < bufsize; j++) {
 			for (int k = 0; k < 8; k++) {
 				char mask = 1 << k;
 				// if the k-th bit of the j-byte is set
@@ -107,13 +105,6 @@ int PCcommit(mclBnG1* c, const PCsrs* srs, const PCprecompute* pc, const mclBnFr
 					mclBnG1_add(c, c, precomp_table + precomp_index);
 				}
 				precomp_index += 1;
-			}
-		}
-		if (i == 0) {
-			mclBnG1 normal;
-			mclBnG1_mul(&normal, srs->G1PK + i, poly + i);
-			if (!mclBnG1_isEqual(&normal, c)) {
-				printf("nonono\n");
 			}
 		}
 	}
