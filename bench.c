@@ -43,7 +43,7 @@ int main()
 		mclBnG1 C;
 		clock_t start_commitment, end_commitment;
 		start_commitment = clock();
-		PCcommit(&C, &srs, &pc, data, 2048);
+		PCcommit(&C, data, 2048, &srs, &pc);
 		end_commitment = clock();
 		double time_commitment;
 		time_commitment = ((double) (end_commitment - start_commitment)) / CLOCKS_PER_SEC;
@@ -56,7 +56,7 @@ int main()
 		clock_t start_witness, end_witness;
 		start_witness = clock();
 		for (int wtns = 0; wtns < 10; wtns++) {
-			PCwitness(W + wtns, eval + wtns, wtns, data, 2048, &srs);
+			PCwitness(W + wtns, eval + wtns, wtns, data, 2048, &srs, &pc);
 		}
 		end_witness = clock();
 		double time_witness;

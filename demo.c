@@ -43,7 +43,7 @@ int main()
 	mclBnG1 C;
 	clock_t start_commitment, end_commitment;
 	start_commitment = clock();
-	PCcommit(&C, &srs, &pc, data, 2048);
+	PCcommit(&C, data, 2048, &srs, &pc);
 	end_commitment = clock();
 	double time_used;
 	time_used = ((double) (end_commitment - start_commitment)) / CLOCKS_PER_SEC;
@@ -57,7 +57,7 @@ int main()
 		fflush(stdout);
 		mclBnFr EvalI;
 		// generate the witness
-		PCwitness(W + i, &EvalI, i, data, 2048, &srs);
+		PCwitness(W + i, &EvalI, i, data, 2048, &srs, &pc);
 
 		// verify witness
 		clock_t start_witness, mid_witness, end_witness;

@@ -22,10 +22,10 @@ int PCsrs_init(PCsrs* srs, const char* G1sk, const char* G2sk, const char* Ask,
 
 int PCprecompute_init(PCprecompute* pc, const PCsrs* srs, int eval_len);
 
-int PCcommit(mclBnG1* c, const PCsrs* srs, const PCprecompute* pc, const mclBnFr* poly, int len);
+int PCcommit(mclBnG1* c, const mclBnFr* poly, int len, const PCsrs* srs, const PCprecompute* pc);
 
 // poly is defined as the coefficients, from low degree to high degree
-int PCwitness(mclBnG1* w, mclBnFr* evalRes, int evalPoint, const mclBnFr* poly, int poly_len, const PCsrs* srs);
+int PCwitness(mclBnG1* w, mclBnFr* evalRes, int evalPoint, const mclBnFr* poly, int poly_len, const PCsrs* srs, const PCprecompute* pc);
 
 inline int PCverifyEval_computeCG2(mclBnGT* CG2, const mclBnG1* c, const PCprecompute* pc) {
 	// CG2 = e(C, G2);
