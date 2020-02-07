@@ -30,7 +30,7 @@ int main()
 	PCprecompute pc;
 	PCprecompute_init(&pc, &srs, DEG * 2);
 
-	printf("block size %.2lf bytes, %d evaluation points, 10 checks per node\n", DEG * 31.0 / 1024.0, DEG * 2);
+	printf("block size %.2lf kilobytes, %d evaluation points, 10 checks per node\n", DEG * 31.0 / 1024.0, DEG * 2);
 
 	// generate the polynomial to be encoded
 	// the coefficients of the polynomial are the message chunks
