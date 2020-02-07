@@ -1,6 +1,6 @@
 #ifdef BLS
 #include "polycommit_bls.h"
-#define RSIZE 32
+#define RSIZE 32	// size of Fr in bytes
 #endif
 #ifdef BN
 #include "polycommit_bn.h"
@@ -52,14 +52,25 @@ int PCprecompute_init(PCprecompute* pc, const PCsrs* srs, int eval_len) {
 		mclBn_precomputeG2(pc->mG2AG2I[i], &G2AdivG2I);
 	}
 	int srs_len = srs->srs_len;
-	pc->expG1 = (mclBnG1**)malloc(srs_len * sizeof(mclBnG1*));
-	int precomp_len = RSIZE * 8;
+	pc->expG1 = (mclBnG1***)malloc(srs_len * sizeof(mclBnG1**));
 	for (int i = 0; i < srs_len; i++) {
-		pc->expG1[i] = (mclBnG1*)malloc(precomp_len * sizeof(mclBnG1));
-		pc->expG1[i][0] = srs->G1PK[i];
-		for (int j = 1; j < precomp_len; j++) {
-			// expG1[i][j] = G1PK[i]^(2^j)
-			mclBnG1_dbl(pc->expG1[i] + j, pc->expG1[i] + j - 1);
+		// precompute for G1^A^i
+		pc->expG1[i] = (mclBnG1**)malloc(RSIZE * sizeof(mclBnG1*));
+		// set the base for k = 2^(j*8), we start with j=0
+		mclBnFr expBase, expStep;
+		mclBnFr_setInt(&expBase, 1);
+		mclBnFr_setInt(&expStep, 1 << 8);
+		for (int j = 0; j < RSIZE; j++) {
+			// precompute for the j-th least significant byte
+			mclBnG1 base;
+			mclBnG1_mul(&base, srs->G1PK + i, &expBase);
+			pc->expG1[i][j] = (mclBnG1*)malloc((1<<8) * sizeof(mclBnG1));
+			mclBnG1_clear(pc->expG1[i][j] + 0);
+			for (int k = 1; k < (1<<8); k++) {
+				mclBnG1_add(pc->expG1[i][j] + k, pc->expG1[i][j] + k - 1, &base);
+			}
+			// bump up the exp base
+			mclBnFr_mul(&expBase, &expBase, &expStep);
 		}
 	}
 	return 0;
@@ -92,21 +103,20 @@ int PCcommit(mclBnG1* c, const PCsrs* srs, const PCprecompute* pc, const mclBnFr
 	mclBnG1_clear(c);
 	char ef[RSIZE];
 	for (int i = 0; i < len; i++) {
-		const mclBnG1* precomp_table = pc->expG1[i];
-		int precomp_index = 0;
+		mclBnG1 cthis;
+		mclBnG1_clear(&cthis);
+		mclBnG1** precomp_table = pc->expG1[i];
 		// first decompose the coefficient into bit string
 		int bufsize = mclBnFr_getLittleEndian(ef, RSIZE, poly + i);
 		// then add them up. notice that ef is little endian
 		for (int j = 0; j < bufsize; j++) {
-			for (int k = 0; k < 8; k++) {
-				char mask = 1 << k;
-				// if the k-th bit of the j-byte is set
-				if (mask & ef[j]) {
-					mclBnG1_add(c, c, precomp_table + precomp_index);
-				}
-				precomp_index += 1;
-			}
+			mclBnG1_add(&cthis, &cthis, precomp_table[j] + ef[j]);
 		}
+			mclBnG1 normal;
+			mclBnG1_mul(&normal, srs->G1PK + i, poly + i);
+			if (!mclBnG1_isEqual(&normal, &cthis)) {
+				printf("wrong i=%d!\n", i);
+			}
 	}
 	return 0;
 }
