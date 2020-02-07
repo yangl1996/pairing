@@ -7,7 +7,7 @@
 #include "polycommit_bls.h"
 #endif
 
-#define DEG 1024
+#define DEG 128
 
 int main()
 {
@@ -30,7 +30,7 @@ int main()
 	PCprecompute pc;
 	PCprecompute_init(&pc, &srs, DEG * 2);
 
-	printf("%d coefficients, %d evaluation points, 10 checks per node\n", DEG, DEG * 2);
+	printf("block size %.2lf bytes, %d evaluation points, 10 checks per node\n", DEG * 31.0 / 1024.0, DEG * 2);
 
 	// generate the polynomial to be encoded
 	// the coefficients of the polynomial are the message chunks
