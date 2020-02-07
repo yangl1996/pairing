@@ -101,22 +101,17 @@ int PCwitness(mclBnG1* w, mclBnFr* evalRes, int evalPoint, const mclBnFr* poly, 
 int PCcommit(mclBnG1* c, const PCsrs* srs, const PCprecompute* pc, const mclBnFr* poly, int len) {
 	// C = Prod(G1PK[i] ^ poly[i])
 	mclBnG1_clear(c);
-	char ef[RSIZE];
+	uint8_t ef[RSIZE];
 	for (int i = 0; i < len; i++) {
 		mclBnG1 cthis;
 		mclBnG1_clear(&cthis);
-		mclBnG1** precomp_table = pc->expG1[i];
 		// first decompose the coefficient into bit string
 		int bufsize = mclBnFr_getLittleEndian(ef, RSIZE, poly + i);
 		// then add them up. notice that ef is little endian
 		for (int j = 0; j < bufsize; j++) {
-			mclBnG1_add(&cthis, &cthis, precomp_table[j] + ef[j]);
+			mclBnG1_add(&cthis, &cthis, pc->expG1[i][j] + ef[j]);
 		}
-			mclBnG1 normal;
-			mclBnG1_mul(&normal, srs->G1PK + i, poly + i);
-			if (!mclBnG1_isEqual(&normal, &cthis)) {
-				printf("wrong i=%d!\n", i);
-			}
+		mclBnG1_add(c, c, &cthis);
 	}
 	return 0;
 }
