@@ -8,6 +8,7 @@
 #endif
 
 #define DEG 2048
+#define NUM_WITNESS 20
 
 int main()
 {
@@ -30,7 +31,7 @@ int main()
 	PCprecompute pc;
 	PCprecompute_init(&pc, &srs, DEG * 2);
 
-	printf("block size %.2lf kilobytes, %d evaluation points, 10 checks per node\n", DEG * 31.0 / 1024.0, DEG * 2);
+	printf("block size %.2lf kilobytes, %d evaluation points, %d checks per node\n", DEG * 31.0 / 1024.0, DEG * 2, NUM_WITNESS);
 
 	// generate the polynomial to be encoded
 	// the coefficients of the polynomial are the message chunks
@@ -50,32 +51,32 @@ int main()
 		double time_commitment;
 		time_commitment = ((double) (end_commitment - start_commitment)) / CLOCKS_PER_SEC;
 
-		// generate 10 witnesses
+		// generate witnesses
 		mclBnG1* W;
 		mclBnFr* eval;
-		W = (mclBnG1*)malloc(10 * sizeof(mclBnG1));
-		eval = (mclBnFr*)malloc(10 * sizeof(mclBnFr));
+		W = (mclBnG1*)malloc(NUM_WITNESS* sizeof(mclBnG1));
+		eval = (mclBnFr*)malloc(NUM_WITNESS * sizeof(mclBnFr));
 		clock_t start_witness, end_witness;
 		start_witness = clock();
-		for (int wtns = 0; wtns < 10; wtns++) {
+		for (int wtns = 0; wtns < NUM_WITNESS; wtns++) {
 			PCwitness(W + wtns, eval + wtns, wtns, data, DEG, &srs, &pc);
 		}
 		end_witness = clock();
 		double time_witness;
-		time_witness = ((double) (end_witness - start_witness)) / CLOCKS_PER_SEC / 10;
+		time_witness = ((double) (end_witness - start_witness)) / CLOCKS_PER_SEC / NUM_WITNESS;
 
-		// verify 10 witnesses
+		// verify witnesses
 		int res = 0;
 		clock_t start_verify, end_verify;
 		start_verify = clock();
 		mclBnGT e1;
 		PCverifyEval_computeCG2(&e1, &C, &pc);
-		for (int wtns = 0; wtns < 10; wtns++) {
+		for (int wtns = 0; wtns < NUM_WITNESS; wtns++) {
 			res += !PCverifyEval_precomputed(wtns, eval + wtns, W + wtns, &e1, &pc);
 		}
 		end_verify = clock();
 		double time_verify;
-		time_verify = ((double) (end_verify - start_verify)) / CLOCKS_PER_SEC;
+		time_verify = ((double) (end_verify - start_verify)) / CLOCKS_PER_SEC / NUM_WITNESS * 10;
 		if (res != 0) {
 			printf("Verification Error\n");
 		}
