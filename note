@@ -1,0 +1,16 @@
+We need to make sure that there should be no chance of inconsistency.
+E.g. in the case of merkle tree, 4096 leaves are encoded while only
+2048 are needed to determine the original data. This provides room of
+inconsistency. So, conclusion 1: encode exactly 2048 values.
+
+Next, let's review the complexity of each operation. Assuming each
+block is n field elements.
+
+		Computation	Communnication
+Commitment	O(n)		O(1)
+Witness		O(n)		O(1)
+Verify		O(1)		N/A
+
+However, if we are able to split the polynomial into smaller parts
+and commit to each of them. For example, suppose that we chop the
+degree-n polynomial into m chunks, such that n % m = 0.

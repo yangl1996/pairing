@@ -76,15 +76,15 @@ int main()
 		}
 		end_verify = clock();
 		double time_verify;
-		time_verify = ((double) (end_verify - start_verify)) / CLOCKS_PER_SEC / NUM_WITNESS * 10;
+		time_verify = ((double) (end_verify - start_verify)) / CLOCKS_PER_SEC / NUM_WITNESS;
 		if (res != 0) {
 			printf("Verification Error\n");
 		}
-		printf("Commit=%.2lf ms (%.2lf Mbps); Eval=%.2lf ms (%.2lf Kbps); Check=%.2lf ms (%.2lf Mbps)\n",
+		printf("Commit=%.2lf ms (%.2lf Mbps); Eval=%.2lf ms (%.2lf Mbps); Check=%.2lf ms (%.2lf Mbps)\n",
                         time_commitment * 1000.0,
 			DEG * 31.0 / 1024.0 * 8 / 1024.0 / time_commitment,
 			time_witness * 1000.0,
-			DEG * 31.0 / 1024.0 * 8 / DEG / 2 / time_witness,
+			DEG * 31.0 / 1024.0 * 8 / 1024.0 / time_witness,
 			time_verify * 1000.0,
 			DEG * 31.0 / 1024.0 * 8 / 1024.0 / time_verify);
 	}
